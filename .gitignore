@@ -1,3 +1,13 @@
 # [ RUST ] #
 target/
 Cargo.lock
+
+# [ OS ] #
+.DS_Store
+
+# [ IDE ] #
+.idea/
+.vscode/
+
+# [ MAIN ] #
+mdpu
