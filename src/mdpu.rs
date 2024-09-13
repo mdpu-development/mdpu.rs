@@ -1,6 +1,3 @@
-use std::io::{self, Write};
-use std::mem;
-
 // Define the structure of the multi-dimensional processing unit
 struct ProcessingUnit {
     registers: Vec<i32>,
@@ -15,6 +12,7 @@ struct ProcessingUnitState {
 }
 
 // Define opcodes
+#[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
 enum Opcode {
     Nop,
@@ -198,7 +196,7 @@ impl ProcessingUnit {
 // Function to run the program and return the state
 fn run(pu: &mut ProcessingUnit, program: &[Instruction], mic: usize) -> ProcessingUnitState {
     execute_program(pu, program, mic);
-    let stack_size = pu.memory.len() - pu.stack_pointer - 1;
+    // let stack_size = pu.memory.len() - pu.stack_pointer - 1;
 
     let stack = pu.memory[pu.stack_pointer + 1..].to_vec();
     let registers = pu.registers.clone();
@@ -304,7 +302,7 @@ fn execute_program(pu: &mut ProcessingUnit, program: &[Instruction], mic: usize)
                 pu.check_register_bounds(instr.reg1);
                 pu.check_register_bounds(instr.reg2);
                 pu.check_register_bounds(instr.reg3);
-                pu.registers[instr.reg3] = (pu.registers[instr.reg1] - pu.registers[instr.reg2]);
+                pu.registers[instr.reg3] = pu.registers[instr.reg1] - pu.registers[instr.reg2];
             }
             Opcode::Test => {
                 pu.check_register_bounds(instr.reg1);
@@ -350,8 +348,32 @@ fn execute_program(pu: &mut ProcessingUnit, program: &[Instruction], mic: usize)
     }
 }
 
+// Function to parse the dimensions
+fn parse_dimensions(dimensions: &str) -> usize {
+    let dims: Vec<usize> = dimensions
+        .split('x')
+        .map(|dim| {
+            dim.parse::<usize>()
+                .expect("Error: Invalid dimension, must be a positive integer")
+        })
+        .collect();
+    dims.iter().product()
+}
+
 fn main() {
-    let mut pu = ProcessingUnit::initialize(8, 128);
+    use std::env;
+
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 3 {
+        eprintln!("Usage: {} <register_size_dimensions> <memory_size_dimensions>", args[0]);
+        std::process::exit(1);
+    }
+
+    // Parse the dimensions for registers and memory
+    let total_registers = parse_dimensions(&args[1]);
+    let total_memory = parse_dimensions(&args[2]);
+
+    let mut pu = ProcessingUnit::initialize(total_registers, total_memory);
 
     // Sample program instructions
     let program = vec![
@@ -375,8 +397,16 @@ fn main() {
             opcode: Opcode::Add,
             reg1: 0,
             reg2: 1,
-            reg3: 2,
+            reg3: 5,
             addr: 0,
+            immediate: 0,
+        },
+        Instruction {
+            opcode: Opcode::Jz,
+            reg1: 2,
+            reg2: 0,
+            reg3: 0,
+            addr: 5,
             immediate: 0,
         },
         Instruction {
