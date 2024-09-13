@@ -1,0 +1,34 @@
+// 0.instr requires a total of 18 registers (R0-R17) to run and 100 memory cells.
+// Run with: ./mdpu 18 100 programs/0.instr
+LI 0 0 0 0 10
+LI 1 0 0 0 5
+ADD 0 1 2 0 0
+SUB 2 1 3 0 0
+MUL 2 3 4 0 0
+DIV 4 1 5 0 0
+STORE 5 0 0 99 0
+LOAD 6 0 0 99 0
+PUSH 6 0 0 0 0
+POP 7 0 0 0 0
+MOV 8 7 0 0 0
+AND 0 1 9 0 0
+OR 0 1 10 0 0
+XOR 0 1 11 0 0
+NOT 0 12 0 0 0
+SHL 1 2 13 0 0
+SHR 1 2 14 0 0
+CMP 0 1 0 0 0
+TEST 0 1 0 0 0
+JMP 0 0 0 25 0
+NOP
+LI 15 0 0 0 0
+JZ 15 0 0 24 0
+JNZ 1 0 0 24 0
+JE 0 1 0 24 0
+JNE 0 1 0 25 0
+B 0 0 0 27 0
+BZ 15 0 0 27 0
+BNZ 1 0 0 28 0
+NEG 0 16 0 0 0
+ABS 16 17 0 0 0
+HALT 0 0 0 0 0

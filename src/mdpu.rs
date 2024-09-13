@@ -360,68 +360,123 @@ fn parse_dimensions(dimensions: &str) -> usize {
     dims.iter().product()
 }
 
+use std::fs::File;
+use std::io::{self, BufRead};
+use std::path::Path;
+
+// Modify the main function to load instructions from a file
 fn main() {
     use std::env;
 
     let args: Vec<String> = env::args().collect();
-    if args.len() != 3 {
-        eprintln!("Usage: {} <register_size_dimensions> <memory_size_dimensions>", args[0]);
+    if args.len() != 4 {
+        eprintln!("Usage: {} <register_size_dimensions> <memory_size_dimensions> <program_file>", args[0]);
         std::process::exit(1);
     }
 
     // Parse the dimensions for registers and memory
     let total_registers = parse_dimensions(&args[1]);
     let total_memory = parse_dimensions(&args[2]);
+    let program_file = &args[3];
 
     let mut pu = ProcessingUnit::initialize(total_registers, total_memory);
 
-    // Sample program instructions
-    let program = vec![
-        Instruction {
-            opcode: Opcode::LoadImmediate,
-            reg1: 0,
-            reg2: 0,
-            reg3: 0,
-            addr: 0,
-            immediate: 10,
-        },
-        Instruction {
-            opcode: Opcode::LoadImmediate,
-            reg1: 1,
-            reg2: 0,
-            reg3: 0,
-            addr: 0,
-            immediate: 20,
-        },
-        Instruction {
-            opcode: Opcode::Add,
-            reg1: 0,
-            reg2: 1,
-            reg3: 5,
-            addr: 0,
-            immediate: 0,
-        },
-        Instruction {
-            opcode: Opcode::Jz,
-            reg1: 2,
-            reg2: 0,
-            reg3: 0,
-            addr: 5,
-            immediate: 0,
-        },
-        Instruction {
-            opcode: Opcode::Halt,
-            reg1: 0,
-            reg2: 0,
-            reg3: 0,
-            addr: 0,
-            immediate: 0,
-        },
-    ];
+    // Load the program from a file
+    let program = load_program(program_file).expect("Failed to load program");
 
     let mic = 1000; // Maximum instruction count
     let state = run(&mut pu, &program, mic);
 
     println!("Registers: {:?}", state.registers);
     println!("Stack: {:?}", state.stack);
+}
+
+// Function to load a program from a file
+fn load_program(filename: &str) -> Result<Vec<Instruction>, io::Error> {
+    let path = Path::new(filename);
+    let file = File::open(&path)?;
+    let lines = io::BufReader::new(file).lines();
+
+    let mut program = Vec::new();
+
+    for line in lines {
+        if let Ok(instr_str) = line {
+            if let Some(instr) = parse_instruction(&instr_str) {
+                program.push(instr);
+            }
+        }
+    }
+
+    Ok(program)
+}
+
+// Function to parse an instruction from a line of text
+fn parse_instruction(line: &str) -> Option<Instruction> {
+    let parts: Vec<&str> = line.split_whitespace().collect();
+    // Check for comment or empty line
+    if parts.is_empty() || parts[0].starts_with("//") {
+        return Some(Instruction {
+            opcode: Opcode::Nop,
+            reg1: 0,
+            reg2: 0,
+            reg3: 0,
+            addr: 0,
+            immediate: 0,
+        });
+    }
+
+    let opcode = match parts[0] {
+        "NOP" => Opcode::Nop,
+        "ADD" => Opcode::Add,
+        "SUB" => Opcode::Sub,
+        "MUL" => Opcode::Mul,
+        "DIV" => Opcode::Div,
+        "STORE" => Opcode::Store,
+        "LOAD" => Opcode::Load,
+        "LI" => Opcode::LoadImmediate,
+        "PUSH" => Opcode::Push,
+        "POP" => Opcode::Pop,
+        "JMP" => Opcode::Jmp,
+        "JZ" => Opcode::Jz,
+        "JNZ" => Opcode::Jnz,
+        "MOV" => Opcode::Mov,
+        "JE" => Opcode::Je,
+        "JNE" => Opcode::Jne,
+        "AND" => Opcode::And,
+        "OR" => Opcode::Or,
+        "XOR" => Opcode::Xor,
+        "NOT" => Opcode::Not,
+        "SHL" => Opcode::Shl,
+        "SHR" => Opcode::Shr,
+        "CMP" => Opcode::Cmp,
+        "TEST" => Opcode::Test,
+        "B" => Opcode::B,
+        "BZ" => Opcode::Bz,
+        "BNZ" => Opcode::Bnz,
+        "NEG" => Opcode::Neg,
+        "ABS" => Opcode::Abs,
+        "MOD" => Opcode::Mod,
+        "INC" => Opcode::Inc,
+        "DEC" => Opcode::Dec,
+        "HALT" => Opcode::Halt,
+        _ => {
+            eprintln!("Unknown opcode: {}", parts[0]);
+            return None;
+        }
+    };
+
+    let reg1 = parts.get(1).and_then(|s| s.parse().ok()).unwrap_or(0);
+    let reg2 = parts.get(2).and_then(|s| s.parse().ok()).unwrap_or(0);
+    let reg3 = parts.get(3).and_then(|s| s.parse().ok()).unwrap_or(0);
+    let addr = parts.get(4).and_then(|s| s.parse().ok()).unwrap_or(0);
+    let immediate = parts.get(5).and_then(|s| s.parse().ok()).unwrap_or(0);
+
+    Some(Instruction {
+        opcode,
+        reg1,
+        reg2,
+        reg3,
+        addr,
+        immediate,
+    })
 }
