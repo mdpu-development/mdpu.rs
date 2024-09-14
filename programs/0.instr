@@ -1,5 +1,5 @@
 // 0.instr requires a total of 18 registers (R0-R17) to run and 100 memory cells.
-// Run with: ./mdpu 18 100 programs/0.instr
+// Run with: cargo run 18 100 programs/0.instr
 LI 0 0 0 0 10
 LI 1 0 0 0 5
 ADD 0 1 2 0 0
@@ -20,12 +20,7 @@ SHR 1 2 14 0 0
 CMP 0 1 0 0 0
 TEST 0 1 0 0 0
 JMP 0 0 0 25 0
-NOP
 LI 15 0 0 0 0
-JZ 15 0 0 24 0
-JNZ 1 0 0 24 0
-JE 0 1 0 24 0
-JNE 0 1 0 25 0
 B 0 0 0 27 0
 BZ 15 0 0 27 0
 BNZ 1 0 0 28 0

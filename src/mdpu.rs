@@ -339,7 +339,7 @@ fn execute_program(pu: &mut ProcessingUnit, program: &[Instruction], mic: usize)
                 pu.check_register_bounds(instr.reg1);
                 pu.registers[instr.reg1] -= 1;
             }
-            Opcode::Nop => {} // No operation
+            Opcode::Nop => {}
             Opcode::Halt => break, // Stop execution
         }
 
@@ -414,7 +414,7 @@ fn load_program(filename: &str) -> Result<Vec<Instruction>, io::Error> {
 fn parse_instruction(line: &str) -> Option<Instruction> {
     let parts: Vec<&str> = line.split_whitespace().collect();
     // Check for comment or empty line
-    if parts.is_empty() || parts[0].starts_with("//") {
+    if parts.is_empty() || parts[0].starts_with("//") || parts[0].starts_with("NOP\n") {
         return Some(Instruction {
             opcode: Opcode::Nop,
             reg1: 0,
@@ -426,7 +426,6 @@ fn parse_instruction(line: &str) -> Option<Instruction> {
     }
 
     let opcode = match parts[0] {
-        "NOP" => Opcode::Nop,
         "ADD" => Opcode::Add,
         "SUB" => Opcode::Sub,
         "MUL" => Opcode::Mul,
