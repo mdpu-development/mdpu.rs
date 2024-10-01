@@ -1,4 +1,7 @@
-// Define the structure of the multi-dimensional processing unit
+use std::fs::File;
+use std::io::{self, BufRead};
+use std::path::Path;
+
 struct ProcessingUnit {
     registers: Vec<i32>,
     memory: Vec<i32>,
@@ -360,17 +363,16 @@ fn parse_dimensions(dimensions: &str) -> usize {
     dims.iter().product()
 }
 
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::path::Path;
-
 // Modify the main function to load instructions from a file
 fn main() {
     use std::env;
 
     let args: Vec<String> = env::args().collect();
     if args.len() != 4 {
-        eprintln!("Usage: {} <register_size_dimensions> <memory_size_dimensions> <program_file>", args[0]);
+        eprintln!(
+            "Usage: {} <register_size_dimensions> <memory_size_dimensions> <program_file>",
+            args[0]
+        );
         std::process::exit(1);
     }
 
